@@ -66,7 +66,9 @@ def get_status():
     return jsonify({'success': True, 'message': 'Сервер сохранения работает'})
 
 if __name__ == '__main__':
-    print("Запуск сервера автоматического сохранения...")
-    print("Сервер доступен по адресу: http://localhost:5000")
+    port = int(os.environ.get('PORT', 5000))  # берем порт из переменной окружения, по умолчанию 5000
+    print(f"Запуск сервера Monopoly на порту {port}...")
     
-    app.run(host='127.0.0.1', port=5000, debug=False)
+    # host="0.0.0.0" чтобы сервер был доступен извне
+    app.run(host='0.0.0.0', port=port, debug=False)
+
