@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import json
 import os
 
-app = Flask(__name__)
-CORS(app)  # Разрешаем CORS для всех доменов
+# 📂 Настройка папки с сайтом
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")  
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
-# Папка для хранения данных
-DATA_DIR = 'data'
+app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
+CORS(app)
 
 # Файлы для хранения данных
 DATA_FILES = {
@@ -41,7 +43,7 @@ def save_data(data_type, data):
         print(f"Ошибка сохранения {data_type}: {e}")
         return False
 
-# API для сохранения данных
+# --- API ---
 @app.route('/save/<data_type>', methods=['POST'])
 def save_data_endpoint(data_type):
     """Сохранить данные определенного типа"""
@@ -59,11 +61,26 @@ def save_data_endpoint(data_type):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# Проверка статуса
 @app.route('/status', methods=['GET'])
 def get_status():
     """Получить статус сервера"""
     return jsonify({'success': True, 'message': 'Сервер сохранения работает'})
+
+@app.route('/')
+def serve_index():
+    index_path = os.path.join(FRONTEND_DIR, "index.html")
+    if os.path.exists(index_path):
+        return send_from_directory(FRONTEND_DIR, "index.html")
+    else:
+        return "index.html не найден", 404
+
+@app.route('/<path:path>')
+def serve_static(path):
+    file_path = os.path.join(FRONTEND_DIR, path)
+    if os.path.exists(file_path):
+        return send_from_directory(FRONTEND_DIR, path)
+    else:
+        return "Файл не найден", 404
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))  # берем порт из переменной окружения, по умолчанию 5000
@@ -71,4 +88,3 @@ if __name__ == '__main__':
     
     # host="0.0.0.0" чтобы сервер был доступен извне
     app.run(host='0.0.0.0', port=port, debug=False)
-
