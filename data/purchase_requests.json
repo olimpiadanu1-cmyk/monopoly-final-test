@@ -1,0 +1,49 @@
+[
+  {
+    "id": 1759388097121,
+    "userId": 1759387227810,
+    "userName": "Alexandro_Reyn",
+    "itemId": 1759387462210,
+    "itemName": "Абобус",
+    "itemDescription": "Додик додик додик",
+    "itemPrice": 123,
+    "status": "approved",
+    "createdAt": "2025-10-02T06:54:57.121Z"
+  },
+  {
+    "id": 1759388134096,
+    "userId": 1759387227810,
+    "userName": "Alexandro_Reyn",
+    "itemId": 1759387462210,
+    "itemName": "Абобус",
+    "itemDescription": "Додик додик додик",
+    "itemPrice": 123,
+    "status": "approved",
+    "createdAt": "2025-10-02T06:55:34.096Z",
+    "approvedAt": "2025-10-02T06:57:36.760Z"
+  },
+  {
+    "id": 1759388402264,
+    "userId": 1759387227810,
+    "userName": "Alexandro_Reyn",
+    "itemId": 1759387462210,
+    "itemName": "Абобус",
+    "itemDescription": "Додик додик додик",
+    "itemPrice": 123,
+    "status": "approved",
+    "createdAt": "2025-10-02T07:00:02.264Z",
+    "approvedAt": "2025-10-02T07:00:11.712Z"
+  },
+  {
+    "id": 1759415227010,
+    "userId": 1759388873495,
+    "userName": "123123",
+    "itemId": 1759414624761,
+    "itemName": "123",
+    "itemDescription": "123",
+    "itemPrice": 123,
+    "status": "approved",
+    "createdAt": "2025-10-02T14:27:07.010Z",
+    "approvedAt": "2025-10-02T14:27:21.095Z"
+  }
+]

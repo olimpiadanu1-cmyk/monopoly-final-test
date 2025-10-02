@@ -1,0 +1,80 @@
+[
+  {
+    "id": 1,
+    "nick": "admin",
+    "vk": "https://vk.com/admin",
+    "password": "admin123",
+    "isAdmin": true,
+    "registeredAt": "2025-10-02T06:35:03.262Z",
+    "points": 390
+  },
+  {
+    "id": 1759386979655,
+    "nick": "Fernando_Namikazze",
+    "vk": "vk.com/alex3elenskiu",
+    "password": "123123",
+    "isAdmin": false,
+    "registeredAt": "2025-10-02T06:36:19.655Z",
+    "points": 10
+  },
+  {
+    "id": 1759387227810,
+    "nick": "Alexandro_Reyn",
+    "vk": "vk.com/haise_bloody",
+    "password": "123123",
+    "isAdmin": false,
+    "registeredAt": "2025-10-02T06:40:27.810Z",
+    "points": 10
+  },
+  {
+    "id": 1759387759625,
+    "nick": "Fernando_Namikazzee",
+    "vk": "vk.com/alex3elenskiu",
+    "password": "123123",
+    "isAdmin": false,
+    "registeredAt": "2025-10-02T06:49:19.625Z",
+    "points": 1000
+  },
+  {
+    "id": 1759388873495,
+    "nick": "123123",
+    "vk": "123",
+    "password": "123123",
+    "isAdmin": false,
+    "registeredAt": "2025-10-02T07:07:53.495Z",
+    "points": 17
+  },
+  {
+    "id": 1759388874536,
+    "nick": "123123123",
+    "vk": "123123",
+    "password": "123123",
+    "isAdmin": false,
+    "registeredAt": "2025-10-02T07:07:54.536Z"
+  },
+  {
+    "id": 1759388876407,
+    "nick": "1231",
+    "vk": "123",
+    "password": "123123",
+    "isAdmin": false,
+    "registeredAt": "2025-10-02T07:07:56.407Z"
+  },
+  {
+    "id": 1759401939983,
+    "nick": "123123111",
+    "vk": "123123",
+    "password": "123123",
+    "isAdmin": false,
+    "registeredAt": "2025-10-02T10:45:39.983Z",
+    "points": 1020
+  },
+  {
+    "id": 1759401944184,
+    "nick": "123123111",
+    "vk": "123123",
+    "password": "123123",
+    "isAdmin": false,
+    "registeredAt": "2025-10-02T10:45:44.184Z"
+  }
+]
