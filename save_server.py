@@ -8,7 +8,7 @@ import os
 
 # 📂 Настройка папки с сайтом
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")  
+FRONTEND_DIR = BASE_DIR
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
@@ -88,3 +88,4 @@ if __name__ == '__main__':
     
     # host="0.0.0.0" чтобы сервер был доступен извне
     app.run(host='0.0.0.0', port=port, debug=False)
+
