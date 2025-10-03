@@ -8,7 +8,7 @@ import os
 
 # 📂 Настройка папки с сайтом
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-FRONTEND_DIR = BASE_DIR
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")  
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")

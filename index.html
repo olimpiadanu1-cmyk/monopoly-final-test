@@ -95,6 +95,56 @@
                 <button class="main-button monopoly-btn active">Монополия</button>
                 <button class="main-button shop-btn" onclick="showAdminShop()">Админ магазин</button>
                 <button class="main-button admin-btn" onclick="showAdminPanel()">Админ панель</button>
+                <button class="main-button business-btn" onclick="showBusinessManager()">Управление бизнесами</button>
+                <style>
+                /* Стили для страницы управления бизнесами */
+                #business-manager-page {
+                    display: flex;
+                    height: calc(100vh - 120px);
+                    padding: 40px 0 0 0;
+                    gap: 32px;
+                }
+                .business-manager-sidebar {
+                    background: #fff;
+                    border-radius: 16px;
+                    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+                    width: 320px;
+                    min-width: 260px;
+                    max-width: 400px;
+                    padding: 32px 24px;
+                    margin-left: 32px;
+                    margin-bottom: 32px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+                .business-manager-content {
+                    background: #fff;
+                    border-radius: 16px;
+                    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+                    flex: 1 1 0;
+                    padding: 32px 24px;
+                    margin-right: 32px;
+                    margin-bottom: 32px;
+                    overflow-y: auto;
+                    max-height: 70vh;
+                    min-width: 0;
+                }
+                @media (max-width: 900px) {
+                    #business-manager-page {
+                        flex-direction: column;
+                        gap: 16px;
+                        padding: 16px 0 0 0;
+                    }
+                    .business-manager-sidebar,
+                    .business-manager-content {
+                        margin: 0 8px 16px 8px;
+                        width: auto;
+                        max-width: 100%;
+                        padding: 16px 8px;
+                    }
+                }
+                </style>
             </div>
             <div class="points-display">
                 <div class="points-container">
@@ -875,6 +925,7 @@
     <!-- Скрытый input для импорта файлов -->
     <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="handleImportFile(event)">
 
+    <script src="api_client.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

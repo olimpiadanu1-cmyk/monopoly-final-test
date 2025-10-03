@@ -68,11 +68,37 @@ async function saveGameState() {
         userId: currentUser.id
     };
     
+    // Сохраняем в localStorage для совместимости
     localStorage.setItem(`monopoly_game_state_${currentUser.id}`, JSON.stringify(gameState));
+    
+    // Сохраняем на сервер
+    try {
+        // Загружаем текущие игровые состояния с сервера
+        const gameStates = await monopolyAPI.loadData('game_states') || {};
+        
+        // Обновляем состояние текущего пользователя
+        gameStates[currentUser.id] = gameState;
+        
+        // Сохраняем обновленные состояния на сервер
+        await monopolyAPI.saveData('game_states', gameStates);
+        
+        console.log('✅ Игровое состояние сохранено на сервер');
+    } catch (error) {
+        console.warn('⚠️ Ошибка сохранения игрового состояния на сервер:', error.message);
+    }
 }
 
-function saveLeaderboard(players) {
+async function saveLeaderboard(players) {
+    // Сохраняем в localStorage для совместимости
     localStorage.setItem('monopoly_leaderboard', JSON.stringify(players));
+    
+    // Сохраняем на сервер
+    try {
+        await monopolyAPI.saveData('leaderboard', players);
+        console.log('✅ Таблица лидеров сохранена на сервер');
+    } catch (error) {
+        console.warn('⚠️ Ошибка сохранения таблицы лидеров на сервер:', error.message);
+    }
 }
 
 // Функция для автоматического обновления лидерборда
@@ -127,8 +153,8 @@ function loadGameState() {
 
 // Система пользователей
 let currentUser = null;
-let users = JSON.parse(localStorage.getItem('monopoly_users') || '[]');
-let applications = JSON.parse(localStorage.getItem('monopoly_applications') || '[]');
+let users = [];
+let applications = [];
 
 // Статусы заявок
 const APPLICATION_STATUS = {
@@ -1681,11 +1707,11 @@ async function banUser(userId) {
 }
 
 // Функции магазина
-let shopItems = JSON.parse(localStorage.getItem('monopoly_shop_items') || '[]');
-let purchaseRequests = JSON.parse(localStorage.getItem('monopoly_purchase_requests') || '[]');
+let shopItems = [];
+let purchaseRequests = [];
 
 // Система заданий
-let cellTasks = JSON.parse(localStorage.getItem('monopoly_cell_tasks') || '{}');
+let cellTasks = {};
 
 const PURCHASE_STATUS = {
     PENDING: 'pending',
@@ -1952,11 +1978,6 @@ async function confirmPurchase() {
     
     // Сохраняем заявку
     purchaseRequests.push(purchaseRequest);
-    localStorage.setItem('monopoly_purchase_requests', JSON.stringify(purchaseRequests));
-    
-    // Автоматически сохраняем данные
-    await autoSaveData();
-    
     
     // Добавляем товар в корзину пользователя
     const userCartKey = `monopoly_shopping_cart_${currentUser.id}`;
@@ -1964,18 +1985,8 @@ async function confirmPurchase() {
     userCart.push(purchaseRequest);
     localStorage.setItem(userCartKey, JSON.stringify(userCart));
     
-    // Сохраняем корзины на сервер
-    const allShoppingCarts = {};
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('monopoly_shopping_cart_')) {
-            const userId = key.replace('monopoly_shopping_cart_', '');
-            const cartData = JSON.parse(localStorage.getItem(key) || '[]');
-            if (cartData.length > 0) {
-                allShoppingCarts[userId] = cartData;
-            }
-        }
-    }
+    // Автоматически сохраняем данные
+    await autoSaveData();
     
     
     // Обновляем счетчик корзины
@@ -4939,81 +4950,152 @@ function saveToJsonFile(filename, data) {
     console.log(`📝 Данные ${filename} обновлены в localStorage`);
 }
 
-// Автоматическое сохранение основных данных
-async function autoSaveData() {
-    // Сохраняем основные данные в localStorage
-    localStorage.setItem('monopoly_users', JSON.stringify(users));
-    localStorage.setItem('monopoly_applications', JSON.stringify(applications));
-    localStorage.setItem('monopoly_purchase_requests', JSON.stringify(purchaseRequests));
-    localStorage.setItem('monopoly_cell_tasks', JSON.stringify(cellTasks));
-    localStorage.setItem('monopoly_shop_items', JSON.stringify(shopItems));
+// Загрузка всех данных с сервера
+async function loadAllDataFromServer() {
+    console.log('🔄 Загрузка данных с сервера...');
     
-    console.log('💾 Данные сохранены в localStorage');
-    
-    // Сохраняем в JSON файлы через сервер
-    await saveToJsonFiles();
+    try {
+        // Проверяем доступность сервера
+        const serverAvailable = await monopolyAPI.checkStatus();
+        if (!serverAvailable) {
+            console.warn('⚠️ Сервер недоступен, используем localStorage');
+            loadFromLocalStorage();
+            return;
+        }
+
+        // Загружаем все данные
+        const allData = await monopolyAPI.loadAllData();
+        if (allData) {
+            users = allData.users || [];
+            applications = allData.applications || [];
+            purchaseRequests = allData.purchase_requests || [];
+            cellTasks = allData.cell_tasks || {};
+            shopItems = allData.shop_items || [];
+            
+            // Загружаем игровые состояния и корзины с сервера
+            if (allData.game_states) {
+                // Сохраняем игровые состояния в localStorage для совместимости
+                for (const [userId, gameState] of Object.entries(allData.game_states)) {
+                    localStorage.setItem(`monopoly_game_state_${userId}`, JSON.stringify(gameState));
+                }
+            }
+            
+            if (allData.shopping_carts) {
+                // Сохраняем корзины в localStorage для совместимости
+                for (const [userId, cart] of Object.entries(allData.shopping_carts)) {
+                    localStorage.setItem(`monopoly_shopping_cart_${userId}`, JSON.stringify(cart));
+                }
+            }
+            
+            // Загружаем дополнительные данные
+            if (allData.task_submissions) {
+                localStorage.setItem('monopoly_task_submissions', JSON.stringify(allData.task_submissions));
+            }
+            if (allData.reward_history) {
+                localStorage.setItem('monopoly_reward_history', JSON.stringify(allData.reward_history));
+            }
+            if (allData.leaderboard) {
+                localStorage.setItem('monopoly_leaderboard', JSON.stringify(allData.leaderboard));
+            }
+            
+            console.log('✅ Все данные загружены с сервера');
+        } else {
+            console.warn('⚠️ Ошибка загрузки с сервера, используем localStorage');
+            loadFromLocalStorage();
+        }
+    } catch (error) {
+        console.error('❌ Ошибка загрузки данных:', error);
+        loadFromLocalStorage();
+    }
 }
 
-// Функция сохранения в JSON файлы
-async function saveToJsonFiles() {
-    const saveURL = 'http://localhost:5000/save';
-    
-    const dataToSave = {
-        users: users,
-        applications: applications,
-        purchase_requests: purchaseRequests,
-        cell_tasks: cellTasks,
-        shop_items: shopItems,
-        task_submissions: JSON.parse(localStorage.getItem('monopoly_task_submissions') || '[]'),
-        reward_history: JSON.parse(localStorage.getItem('monopoly_reward_history') || '[]'),
-        leaderboard: JSON.parse(localStorage.getItem('monopoly_leaderboard') || '[]')
-    };
-    
-    // Собираем состояния игр
-    const gameStates = {};
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('monopoly_game_state_')) {
-            const userId = key.replace('monopoly_game_state_', '');
-            gameStates[userId] = JSON.parse(localStorage.getItem(key) || '{}');
-        }
+// Загрузка из localStorage (fallback) - только для критических данных
+function loadFromLocalStorage() {
+    // Загружаем только базовые данные, остальное с сервера
+    users = JSON.parse(localStorage.getItem('monopoly_users') || '[]');
+    applications = JSON.parse(localStorage.getItem('monopoly_applications') || '[]');
+    purchaseRequests = JSON.parse(localStorage.getItem('monopoly_purchase_requests') || '[]');
+    cellTasks = JSON.parse(localStorage.getItem('monopoly_cell_tasks') || '{}');
+    shopItems = JSON.parse(localStorage.getItem('monopoly_shop_items') || '[]');
+}
+
+// Автоматическое сохранение основных данных
+async function autoSaveData() {
+    try {
+        // Сохраняем в localStorage как backup
+        localStorage.setItem('monopoly_users', JSON.stringify(users));
+        localStorage.setItem('monopoly_applications', JSON.stringify(applications));
+        localStorage.setItem('monopoly_purchase_requests', JSON.stringify(purchaseRequests));
+        localStorage.setItem('monopoly_cell_tasks', JSON.stringify(cellTasks));
+        localStorage.setItem('monopoly_shop_items', JSON.stringify(shopItems));
+        
+        console.log('💾 Данные сохранены в localStorage');
+        
+        // Сохраняем на сервер
+        await saveToServer();
+    } catch (error) {
+        console.error('❌ Ошибка сохранения:', error);
     }
-    if (Object.keys(gameStates).length > 0) {
-        dataToSave.game_states = gameStates;
-    }
-    
-    // Собираем корзины
-    const shoppingCarts = {};
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('monopoly_shopping_cart_')) {
-            const userId = key.replace('monopoly_shopping_cart_', '');
-            shoppingCarts[userId] = JSON.parse(localStorage.getItem(key) || '[]');
-        }
-    }
-    if (Object.keys(shoppingCarts).length > 0) {
-        dataToSave.shopping_carts = shoppingCarts;
-    }
-    
-    // Сохраняем каждый тип данных
-    for (const [dataType, data] of Object.entries(dataToSave)) {
-        try {
-            const response = await fetch(`${saveURL}/${dataType}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
-            
-            if (response.ok) {
-                console.log(`✅ ${dataType} сохранены в JSON файл`);
-            } else {
-                console.warn(`⚠️ Ошибка сохранения ${dataType} в JSON`);
+}
+
+// Функция сохранения на сервер
+async function saveToServer() {
+    try {
+        // Сохраняем основные данные
+        await monopolyAPI.saveData('users', users);
+        await monopolyAPI.saveData('applications', applications);
+        await monopolyAPI.saveData('purchase_requests', purchaseRequests);
+        await monopolyAPI.saveData('cell_tasks', cellTasks);
+        await monopolyAPI.saveData('shop_items', shopItems);
+        
+        // Загружаем и сохраняем дополнительные данные с сервера
+        const taskSubmissions = await monopolyAPI.loadData('task_submissions') || [];
+        const rewardHistory = await monopolyAPI.loadData('reward_history') || [];
+        const leaderboard = await monopolyAPI.loadData('leaderboard') || [];
+        
+        // Обновляем данные из localStorage если они есть
+        const localTaskSubmissions = JSON.parse(localStorage.getItem('monopoly_task_submissions') || '[]');
+        const localRewardHistory = JSON.parse(localStorage.getItem('monopoly_reward_history') || '[]');
+        const localLeaderboard = JSON.parse(localStorage.getItem('monopoly_leaderboard') || '[]');
+        
+        // Объединяем данные (приоритет у localStorage если он не пустой)
+        const finalTaskSubmissions = localTaskSubmissions.length > 0 ? localTaskSubmissions : taskSubmissions;
+        const finalRewardHistory = localRewardHistory.length > 0 ? localRewardHistory : rewardHistory;
+        const finalLeaderboard = localLeaderboard.length > 0 ? localLeaderboard : leaderboard;
+        
+        await monopolyAPI.saveData('task_submissions', finalTaskSubmissions);
+        await monopolyAPI.saveData('reward_history', finalRewardHistory);
+        await monopolyAPI.saveData('leaderboard', finalLeaderboard);
+        
+        // Собираем состояния игр из localStorage
+        const gameStates = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('monopoly_game_state_')) {
+                const userId = key.replace('monopoly_game_state_', '');
+                gameStates[userId] = JSON.parse(localStorage.getItem(key) || '{}');
             }
-        } catch (error) {
-            console.warn(`⚠️ Сервер сохранения недоступен для ${dataType}:`, error.message);
         }
+        if (Object.keys(gameStates).length > 0) {
+            await monopolyAPI.saveData('game_states', gameStates);
+        }
+        
+        // Собираем корзины из localStorage
+        const shoppingCarts = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('monopoly_shopping_cart_')) {
+                const userId = key.replace('monopoly_shopping_cart_', '');
+                shoppingCarts[userId] = JSON.parse(localStorage.getItem(key) || '[]');
+            }
+        }
+        if (Object.keys(shoppingCarts).length > 0) {
+            await monopolyAPI.saveData('shopping_carts', shoppingCarts);
+        }
+        
+        console.log('✅ Все данные сохранены на сервер');
+    } catch (error) {
+        console.warn('⚠️ Ошибка сохранения на сервер:', error.message);
     }
 }
 
@@ -5167,11 +5249,14 @@ function handleImportFile(event) {
 }
 
 // Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Скрываем экран загрузки через 1 секунду
     setTimeout(() => {
         hideLoadingScreen();
     }, 1000);
+    
+    // Загружаем данные с сервера
+    await loadAllDataFromServer();
     
     // Создаем админа по умолчанию
     createDefaultAdmin();
